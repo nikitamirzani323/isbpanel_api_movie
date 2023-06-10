@@ -1,0 +1,10 @@
+version: '2'
+
+services:
+  isbpanel-api-client-movie:
+    container_name: isbpanel-api-client-movie
+    image: isbpanel-api-client-movie:0.0.1
+    build: .
+    ports:
+      - 5058:5058
+    restart: always
