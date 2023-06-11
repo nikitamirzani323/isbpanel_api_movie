@@ -1,8 +1,7 @@
 package entities
 
-type Model_moviecategory struct {
-	Movie_category string      `json:"movie_category"`
-	Movie_list     interface{} `json:"movie_list"`
+type Model_moviegenre struct {
+	Movie_genre string `json:"movie_genre"`
 }
 type Model_movie struct {
 	Movie_slug      string `json:"movie_slug"`
@@ -79,8 +78,14 @@ type Model_mobilelistclaim struct {
 	Claim_point int    `json:"claim_point"`
 }
 
+type Controller_clientgenre struct {
+	Client_hostname string `json:"client_hostname" validate:"required"`
+}
 type Controller_clientmovie struct {
 	Client_hostname string `json:"client_hostname" validate:"required"`
+	Movie_search    string `json:"movie_search"`
+	Movie_tipe      string `json:"movie_tipe"`
+	Movie_page      int    `json:"movie_page"`
 }
 type Controller_season struct {
 	Client_hostname string `json:"client_hostname" validate:"required"`

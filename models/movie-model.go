@@ -17,97 +17,109 @@ import (
 	"github.com/nleeper/goment"
 )
 
-func Fetch_movieHome() (helpers.Response, error) {
-	var obj entities.Model_moviecategory
-	var arraobj []entities.Model_moviecategory
+func Fetch_genre() (helpers.Response, error) {
+	var obj entities.Model_moviegenre
+	var arraobj []entities.Model_moviegenre
 	var res helpers.Response
 	msg := "Data Not Found"
 	con := db.CreateCon()
 	ctx := context.Background()
 	start := time.Now()
 
-	sql_newmovie := `SELECT 
-		movietitle , COALESCE(posted_id,0) , urlthumbnail, slug      
-		FROM ` + config.DB_tbl_trx_movie + ` 
-		WHERE enabled = 1 
-		ORDER BY createdatemovie DESC LIMIT 24     
+	sql_select := `SELECT 
+		nmgenre
+		FROM ` + config.DB_tbl_mst_movie_genre + ` 
+		ORDER BY genredisplay ASC   
 	`
-	fmt.Println(sql_newmovie)
-	row_newmovie, err_newmovie := con.QueryContext(ctx, sql_newmovie)
-	helpers.ErrorCheck(err_newmovie)
-	var objnewmovie entities.Model_movie
-	var arraynewmovie []entities.Model_movie
-	for row_newmovie.Next() {
+
+	row, err := con.QueryContext(ctx, sql_select)
+	helpers.ErrorCheck(err)
+
+	for row.Next() {
 		var (
-			posted_id_db                            int
-			movietitle_db, urlthumbnail_db, slug_db string
+			nmgenre_db string
 		)
 
-		err := row_newmovie.Scan(&movietitle_db, &posted_id_db, &urlthumbnail_db, &slug_db)
+		err := row.Scan(&nmgenre_db)
 		helpers.ErrorCheck(err)
-		path_image := ""
-		if urlthumbnail_db == "" {
-			poster_image, poster_extension := _GetMedia(posted_id_db)
-			path_image = "https://duniafilm.b-cdn.net/uploads/cache/poster_thumb/uploads/" + poster_extension + "/" + poster_image
-		} else {
-			path_image = urlthumbnail_db
-		}
 
-		// movie_url, _, _ := _GetVideo(movieid_db, "")
-
-		objnewmovie.Movie_title = movietitle_db
-		objnewmovie.Movie_thumbnail = path_image
-		objnewmovie.Movie_slug = slug_db
-		arraynewmovie = append(arraynewmovie, objnewmovie)
+		obj.Movie_genre = nmgenre_db
+		arraobj = append(arraobj, obj)
 		msg = "Success"
 	}
-	defer row_newmovie.Close()
-	obj.Movie_category = "Movie Terbaru"
-	obj.Movie_list = arraynewmovie
-	arraobj = append(arraobj, obj)
-
-	sql_updatemovie := `SELECT 
-		movietitle , COALESCE(posted_id,0) , urlthumbnail, slug      
-		FROM ` + config.DB_tbl_trx_movie + ` 
-		WHERE enabled = 1 
-		ORDER BY updatedatemovie DESC LIMIT 24     
-	`
-	row_updatemovie, err_updatemovie := con.QueryContext(ctx, sql_updatemovie)
-	helpers.ErrorCheck(err_updatemovie)
-	var objupdatemovie entities.Model_movie
-	var arrayupdatemovie []entities.Model_movie
-	for row_updatemovie.Next() {
-		var (
-			posted_id_db                            int
-			movietitle_db, urlthumbnail_db, slug_db string
-		)
-
-		err := row_updatemovie.Scan(&movietitle_db, &posted_id_db, &urlthumbnail_db, &slug_db)
-		helpers.ErrorCheck(err)
-		path_image := ""
-		if urlthumbnail_db == "" {
-			poster_image, poster_extension := _GetMedia(posted_id_db)
-			path_image = "https://duniafilm.b-cdn.net/uploads/cache/poster_thumb/uploads/" + poster_extension + "/" + poster_image
-		} else {
-			path_image = urlthumbnail_db
-		}
-
-		// movie_url, _, _ := _GetVideo(movieid_db, "")
-
-		objupdatemovie.Movie_title = movietitle_db
-		objupdatemovie.Movie_thumbnail = path_image
-		objupdatemovie.Movie_slug = slug_db
-		arrayupdatemovie = append(arrayupdatemovie, objupdatemovie)
-		msg = "Success"
-	}
-	defer row_updatemovie.Close()
-	obj.Movie_category = "Movie Update"
-	obj.Movie_list = arrayupdatemovie
-	arraobj = append(arraobj, obj)
+	defer row.Close()
 
 	res.Status = fiber.StatusOK
 	res.Message = msg
 	res.Record = arraobj
+	res.Time = time.Since(start).String()
+
+	return res, nil
+}
+func Fetch_movieHome(search, tipe string, page int) (helpers.ResponsePaging, error) {
+	var obj entities.Model_movie
+	var arraobj []entities.Model_movie
+	var res helpers.ResponsePaging
+	msg := "Data Not Found"
+	con := db.CreateCon()
+	ctx := context.Background()
+	start := time.Now()
+
+	perpage := 40
+	totalrecord := 200
+	// offset := page
+
+	sql_select := ""
+	sql_select += "SELECT "
+	sql_select += "movietitle , COALESCE(posted_id,0) , urlthumbnail, slug "
+	sql_select += "FROM " + config.DB_tbl_trx_movie + " "
+	sql_select += "WHERE enabled = 1 "
+	switch tipe {
+	case "NEW":
+		sql_select += "ORDER BY createdatemovie DESC LIMIT " + strconv.Itoa(perpage)
+	case "UPDATE":
+		sql_select += "ORDER BY updatedatemovie DESC LIMIT " + strconv.Itoa(perpage)
+	case "RANDOM":
+		sql_select += "ORDER BY random() LIMIT 500 "
+	default:
+		sql_select += "ORDER BY random() DESC LIMIT " + strconv.Itoa(perpage)
+	}
+
+	fmt.Println(sql_select)
+	row, err := con.QueryContext(ctx, sql_select)
+	helpers.ErrorCheck(err)
+
+	for row.Next() {
+		var (
+			posted_id_db                            int
+			movietitle_db, urlthumbnail_db, slug_db string
+		)
+
+		err := row.Scan(&movietitle_db, &posted_id_db, &urlthumbnail_db, &slug_db)
+		helpers.ErrorCheck(err)
+		path_image := ""
+		if urlthumbnail_db == "" {
+			poster_image, poster_extension := _GetMedia(posted_id_db)
+			path_image = "https://duniafilm.b-cdn.net/uploads/cache/poster_thumb/uploads/" + poster_extension + "/" + poster_image
+		} else {
+			path_image = urlthumbnail_db
+		}
+
+		// movie_url, _, _ := _GetVideo(movieid_db, "")
+
+		obj.Movie_title = movietitle_db
+		obj.Movie_thumbnail = path_image
+		obj.Movie_slug = slug_db
+		arraobj = append(arraobj, obj)
+		msg = "Success"
+	}
+	defer row.Close()
+
+	res.Status = fiber.StatusOK
+	res.Message = msg
+	res.Record = arraobj
+	res.Totalrecord = totalrecord
+	res.Perpage = perpage
 	res.Time = time.Since(start).String()
 
 	return res, nil

@@ -6,6 +6,14 @@ type Response struct {
 	Record  interface{} `json:"record"`
 	Time    string      `json:"time"`
 }
+type ResponsePaging struct {
+	Status      int         `json:"status"`
+	Message     string      `json:"message"`
+	Record      interface{} `json:"record"`
+	Perpage     int         `json:"perpage"`
+	Totalrecord int         `json:"totalrecord"`
+	Time        string      `json:"time"`
+}
 type ResponseKeluaran struct {
 	Status        int         `json:"status"`
 	Message       string      `json:"message"`
