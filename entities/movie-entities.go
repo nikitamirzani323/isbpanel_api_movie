@@ -9,12 +9,25 @@ type Model_movie struct {
 	Movie_title     string `json:"movie_title"`
 	Movie_thumbnail string `json:"movie_thumbnail"`
 }
+type Model_moviedetailwebsite struct {
+	Movie_type  string      `json:"movie_type"`
+	Movie_title string      `json:"movie_title"`
+	Movie_descp string      `json:"movie_descp"`
+	Movie_slug  string      `json:"movie_slug"`
+	Movie_year  int         `json:"movie_year"`
+	Movie_view  int         `json:"movie_view"`
+	Movie_img   string      `json:"movie_img"`
+	Movie_src   string      `json:"movie_src"`
+	Movie_genre interface{} `json:"movie_genre"`
+	Movie_video interface{} `json:"movie_video"`
+}
 type Model_moviebanner struct {
 	Moviebanner_urlimg         string `json:"moviebanner_urlimg"`
 	Moviebanner_urldestination string `json:"moviebanner_urldestination"`
 }
 type Model_movievideo struct {
-	Movie_src string `json:"movie_src"`
+	Movie_title string `json:"movie_title"`
+	Movie_src   string `json:"movie_src"`
 }
 type Model_movieseason struct {
 	Season_id    int    `json:"season_id"`
@@ -91,6 +104,10 @@ type Controller_clientmovie struct {
 type Controller_clientmoviegenre struct {
 	Client_hostname string `json:"client_hostname" validate:"required"`
 	Movie_page      int    `json:"movie_page"`
+	Slug            string `json:"slug"`
+}
+type Controller_clientmoviedetail struct {
+	Client_hostname string `json:"client_hostname" validate:"required"`
 	Slug            string `json:"slug"`
 }
 type Controller_season struct {

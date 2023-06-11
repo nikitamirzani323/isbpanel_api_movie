@@ -188,6 +188,114 @@ func Fetch_movieByGenre(genre string, page int) (helpers.ResponseMovieGenre, err
 
 	return res, nil
 }
+func Fetch_movieDetail(slug string) (helpers.Response, error) {
+	var obj entities.Model_moviedetailwebsite
+	var arraobj []entities.Model_moviedetailwebsite
+	var res helpers.Response
+	msg := "Data Not Found"
+	con := db.CreateCon()
+	ctx := context.Background()
+	start := time.Now()
+
+	sql_select := `SELECT 
+		movieid, movietitle, movietype, COALESCE(posted_id,0) , urlthumbnail, slug, description, 
+		views, year  
+		FROM ` + config.DB_tbl_trx_movie + ` 
+		WHERE slug=$1 
+		LIMIT 1 
+	`
+
+	row, err := con.QueryContext(ctx, sql_select, slug)
+	helpers.ErrorCheck(err)
+
+	for row.Next() {
+		var (
+			movieid_db, posted_id_db, views_db, year_db                           int
+			movietype_db, movietitle_db, urlthumbnail_db, slug_db, description_db string
+		)
+
+		err := row.Scan(&movieid_db, &movietitle_db, &movietype_db, &posted_id_db, &urlthumbnail_db, &slug_db, &description_db, &views_db, &year_db)
+		helpers.ErrorCheck(err)
+
+		path_image := ""
+		if urlthumbnail_db == "" {
+			poster_image, poster_extension := _GetMedia(posted_id_db)
+			path_image = "https://duniafilm.b-cdn.net/uploads/cache/poster_thumb/uploads/" + poster_extension + "/" + poster_image
+		} else {
+			path_image = urlthumbnail_db
+		}
+
+		movie_src := _GetVideoSingleRandom(movieid_db)
+
+		//GENRE
+		var objmoviegenre entities.Model_moviegenre
+		var arraobjmoviegenre []entities.Model_moviegenre
+		sql_selectmoviegenre := `SELECT 
+			B.nmgenre, B.slug  
+			FROM ` + config.DB_tbl_trx_moviegenre + ` as A 
+			JOIN ` + config.DB_tbl_mst_movie_genre + ` as B ON B.idgenre = A.idgenre 
+			WHERE A.movieid = $1   
+		`
+		row_moviegenre, err := con.QueryContext(ctx, sql_selectmoviegenre, movieid_db)
+		helpers.ErrorCheck(err)
+		for row_moviegenre.Next() {
+			var (
+				nmgenre_db, slug_db string
+			)
+			err := row_moviegenre.Scan(&nmgenre_db, &slug_db)
+			helpers.ErrorCheck(err)
+			objmoviegenre.Movie_genre = nmgenre_db
+			objmoviegenre.Movie_slug = slug_db
+			arraobjmoviegenre = append(arraobjmoviegenre, objmoviegenre)
+		}
+
+		//SOURCE
+		var objmoviesource entities.Model_movievideo
+		var arraobjmoviesource []entities.Model_movievideo
+		if movietype_db == "movie" {
+			sql_selectmoviesource := `SELECT 
+				url 
+				FROM ` + config.DB_tbl_mst_movie_source + ` 
+				WHERE poster_id = $1  
+			`
+			row_moviesource, err := con.QueryContext(ctx, sql_selectmoviesource, movieid_db)
+			helpers.ErrorCheck(err)
+			nosource := 0
+			for row_moviesource.Next() {
+				nosource = nosource + 1
+				var (
+					url_db string
+				)
+				err := row_moviesource.Scan(&url_db)
+				helpers.ErrorCheck(err)
+				objmoviesource.Movie_title = "STREAM-" + strconv.Itoa(nosource)
+				objmoviesource.Movie_src = url_db
+				arraobjmoviesource = append(arraobjmoviesource, objmoviesource)
+			}
+		}
+
+		obj.Movie_type = movietype_db
+		obj.Movie_title = movietitle_db
+		obj.Movie_descp = description_db
+		obj.Movie_img = path_image
+		obj.Movie_src = movie_src
+		obj.Movie_year = year_db
+		obj.Movie_view = views_db
+		obj.Movie_slug = slug_db
+		obj.Movie_genre = arraobjmoviegenre
+		obj.Movie_video = arraobjmoviesource
+		arraobj = append(arraobj, obj)
+		msg = "Success"
+	}
+	defer row.Close()
+
+	res.Status = fiber.StatusOK
+	res.Message = msg
+	res.Record = arraobj
+	res.Time = time.Since(start).String()
+
+	return res, nil
+}
 func SeasonMovie(idmovie int) (helpers.Response, error) {
 	var obj entities.Model_movieseason
 	var arraobj []entities.Model_movieseason
@@ -661,9 +769,7 @@ func _GetMedia(idrecord int) (string, string) {
 	}
 	return url, extension
 }
-func _GetVideo(idrecord int, tipe string) (interface{}, int, string) {
-	var obj entities.Model_movievideo
-	var arraobj []entities.Model_movievideo
+func _GetVideoSingleRandom(idrecord int) string {
 	con := db.CreateCon()
 	ctx := context.Background()
 	totalsource := 0
@@ -673,9 +779,7 @@ func _GetVideo(idrecord int, tipe string) (interface{}, int, string) {
 	sql_select += "url "
 	sql_select += "FROM " + config.DB_tbl_mst_movie_source + " "
 	sql_select += "WHERE poster_id = $1 "
-	if tipe == "single" {
-		sql_select += "ORDER BY RANDOM() DESC LIMIT 1 "
-	}
+	sql_select += "ORDER BY RANDOM() DESC LIMIT 1 "
 
 	row_select, err_select := con.QueryContext(ctx, sql_select, idrecord)
 	helpers.ErrorCheck(err_select)
@@ -683,13 +787,11 @@ func _GetVideo(idrecord int, tipe string) (interface{}, int, string) {
 		totalsource = totalsource + 1
 		var url_db string
 
-		err_select = row_select.Scan(&url_db)
-		helpers.ErrorCheck(err_select)
+		err := row_select.Scan(&url_db)
+		helpers.ErrorCheck(err)
 		source = url_db
-		obj.Movie_src = url_db
-		arraobj = append(arraobj, obj)
 	}
-	return arraobj, totalsource, source
+	return source
 }
 func _GetVideoEpisode(idrecord int) string {
 	con := db.CreateCon()
