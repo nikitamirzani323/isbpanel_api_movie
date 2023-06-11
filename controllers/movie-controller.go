@@ -92,7 +92,7 @@ func Moviegenre(c *fiber.Ctx) error {
 				"record":  nil,
 			})
 		}
-		helpers.SetRedis(Fieldmovie_genre_redis, result, time.Minute*60)
+		helpers.SetRedis(Fieldmovie_genre_redis, result, time.Minute*720)
 		fmt.Println("GENRE MYSQL")
 		return c.JSON(result)
 	} else {
@@ -170,7 +170,7 @@ func Moviehome(c *fiber.Ctx) error {
 				"record":  nil,
 			})
 		}
-		helpers.SetRedis(Fieldmovie_home_redis+"_"+strconv.Itoa(client.Movie_page)+"_"+client.Movie_tipe+"_"+client.Movie_search, result, time.Minute*60)
+		helpers.SetRedis(Fieldmovie_home_redis+"_"+strconv.Itoa(client.Movie_page)+"_"+client.Movie_tipe+"_"+client.Movie_search, result, time.Minute*720)
 		fmt.Println("MOVIE MYSQL")
 		return c.JSON(result)
 	} else {
@@ -251,7 +251,7 @@ func MoviehomeByGenre(c *fiber.Ctx) error {
 				"record":  nil,
 			})
 		}
-		helpers.SetRedis(Fieldmoviegenre_home_redis+"_"+strconv.Itoa(client.Movie_page)+"_"+client.Slug, result, time.Minute*60)
+		helpers.SetRedis(Fieldmoviegenre_home_redis+"_"+strconv.Itoa(client.Movie_page)+"_"+client.Slug, result, time.Minute*720)
 		fmt.Println("MOVIE-GENRE MYSQL")
 		return c.JSON(result)
 	} else {
@@ -365,7 +365,7 @@ func MoviehomeByDetail(c *fiber.Ctx) error {
 				"record":  nil,
 			})
 		}
-		helpers.SetRedis(Fieldmoviedetail_home_redis+"_"+client.Slug, result, time.Minute*60)
+		helpers.SetRedis(Fieldmoviedetail_home_redis+"_"+client.Slug, result, time.Minute*720)
 		fmt.Println("MOVIE-DETAIL MYSQL")
 		return c.JSON(result)
 	} else {
