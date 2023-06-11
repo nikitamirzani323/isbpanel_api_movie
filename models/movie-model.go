@@ -27,7 +27,7 @@ func Fetch_genre() (helpers.Response, error) {
 	start := time.Now()
 
 	sql_select := `SELECT 
-		nmgenre
+		nmgenre, slug 
 		FROM ` + config.DB_tbl_mst_movie_genre + ` 
 		ORDER BY genredisplay ASC   
 	`
@@ -37,13 +37,14 @@ func Fetch_genre() (helpers.Response, error) {
 
 	for row.Next() {
 		var (
-			nmgenre_db string
+			nmgenre_db, slug_db string
 		)
 
-		err := row.Scan(&nmgenre_db)
+		err := row.Scan(&nmgenre_db, &slug_db)
 		helpers.ErrorCheck(err)
 
 		obj.Movie_genre = nmgenre_db
+		obj.Movie_slug = slug_db
 		arraobj = append(arraobj, obj)
 		msg = "Success"
 	}
@@ -120,6 +121,69 @@ func Fetch_movieHome(search, tipe string, page int) (helpers.ResponsePaging, err
 	res.Record = arraobj
 	res.Totalrecord = totalrecord
 	res.Perpage = perpage
+	res.Time = time.Since(start).String()
+
+	return res, nil
+}
+func Fetch_movieByGenre(genre string, page int) (helpers.ResponseMovieGenre, error) {
+	var obj entities.Model_movie
+	var arraobj []entities.Model_movie
+	var res helpers.ResponseMovieGenre
+	msg := "Data Not Found"
+	con := db.CreateCon()
+	ctx := context.Background()
+	start := time.Now()
+
+	idgenre, nmgenre := _GetIdGenre(genre)
+	perpage := 40
+	totalrecord := 200
+	offset := page
+
+	sql_select := ""
+	sql_select += "SELECT "
+	sql_select += "B.movietitle , COALESCE(B.posted_id,0) , B.urlthumbnail, B.slug "
+	sql_select += "FROM " + config.DB_tbl_trx_moviegenre + " as A "
+	sql_select += "JOIN " + config.DB_tbl_trx_movie + " as B ON A.movieid = B.movieid "
+	sql_select += "WHERE B.enabled = 1 "
+	sql_select += "AND A.idgenre = " + strconv.Itoa(idgenre) + " "
+	sql_select += "ORDER BY B.createdatemovie DESC OFFSET " + strconv.Itoa(offset) + "LIMIT " + strconv.Itoa(perpage)
+
+	fmt.Println(sql_select)
+	row, err := con.QueryContext(ctx, sql_select)
+	helpers.ErrorCheck(err)
+
+	for row.Next() {
+		var (
+			posted_id_db                            int
+			movietitle_db, urlthumbnail_db, slug_db string
+		)
+
+		err := row.Scan(&movietitle_db, &posted_id_db, &urlthumbnail_db, &slug_db)
+		helpers.ErrorCheck(err)
+		path_image := ""
+		if urlthumbnail_db == "" {
+			poster_image, poster_extension := _GetMedia(posted_id_db)
+			path_image = "https://duniafilm.b-cdn.net/uploads/cache/poster_thumb/uploads/" + poster_extension + "/" + poster_image
+		} else {
+			path_image = urlthumbnail_db
+		}
+
+		// movie_url, _, _ := _GetVideo(movieid_db, "")
+
+		obj.Movie_title = movietitle_db
+		obj.Movie_thumbnail = path_image
+		obj.Movie_slug = slug_db
+		arraobj = append(arraobj, obj)
+		msg = "Success"
+	}
+	defer row.Close()
+
+	res.Status = fiber.StatusOK
+	res.Message = msg
+	res.Record = arraobj
+	res.Totalrecord = totalrecord
+	res.Perpage = perpage
+	res.Genre = nmgenre
 	res.Time = time.Since(start).String()
 
 	return res, nil
@@ -733,4 +797,24 @@ func _GetBanner() (interface{}, int) {
 		arraobj = append(arraobj, obj)
 	}
 	return arraobj, totalbanner
+}
+func _GetIdGenre(slug string) (int, string) {
+	con := db.CreateCon()
+	ctx := context.Background()
+	idgenre := 0
+	nmgenre := ""
+
+	sql_select := `SELECT
+		idgenre,nmgenre    
+		FROM ` + config.DB_tbl_mst_movie_genre + `  
+		WHERE slug = $1  
+	`
+	row := con.QueryRowContext(ctx, sql_select, slug)
+	switch e := row.Scan(&idgenre, &nmgenre); e {
+	case sql.ErrNoRows:
+	case nil:
+	default:
+		helpers.ErrorCheck(e)
+	}
+	return idgenre, nmgenre
 }

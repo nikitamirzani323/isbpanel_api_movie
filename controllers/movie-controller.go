@@ -17,6 +17,7 @@ import (
 
 const Fieldmovie_genre_redis = "LISTGENRE_FRONTEND_ISBPANEL"
 const Fieldmovie_home_redis = "LISTMOVIE_FRONTEND_ISBPANEL"
+const Fieldmoviegenre_home_redis = "LISTMOVIEGENRE_FRONTEND_ISBPANEL"
 const Fieldseason_home_redis = "LISTSEASON_FRONTEND_ISBPANEL"
 const Fieldepisode_home_redis = "LISTEPISODE_FRONTEND_ISBPANEL"
 
@@ -73,8 +74,10 @@ func Moviegenre(c *fiber.Ctx) error {
 	record_RD, _, _, _ := jsonparser.Get(jsonredis, "record")
 	jsonparser.ArrayEach(record_RD, func(value []byte, dataType jsonparser.ValueType, offset int, err error) {
 		movie_genre, _ := jsonparser.GetString(value, "movie_genre")
+		movie_slug, _ := jsonparser.GetString(value, "movie_slug")
 
 		obj.Movie_genre = movie_genre
+		obj.Movie_slug = movie_slug
 		arraobj = append(arraobj, obj)
 
 	})
@@ -177,6 +180,88 @@ func Moviehome(c *fiber.Ctx) error {
 			"record":      arraobj,
 			"perpage":     perpage_RD,
 			"totalrecord": totalrecord_RD,
+			"time":        time.Since(render_page).String(),
+		})
+	}
+}
+func MoviehomeByGenre(c *fiber.Ctx) error {
+	var errors []*helpers.ErrorResponse
+	client := new(entities.Controller_clientmoviegenre)
+	validate := validator.New()
+	if err := c.BodyParser(client); err != nil {
+		c.Status(fiber.StatusBadRequest)
+		return c.JSON(fiber.Map{
+			"status":  fiber.StatusBadRequest,
+			"message": err.Error(),
+			"record":  nil,
+		})
+	}
+
+	err := validate.Struct(client)
+	if err != nil {
+		for _, err := range err.(validator.ValidationErrors) {
+			var element helpers.ErrorResponse
+			element.Field = err.StructField()
+			element.Tag = err.Tag()
+			errors = append(errors, &element)
+		}
+		c.Status(fiber.StatusBadRequest)
+		return c.JSON(fiber.Map{
+			"status":  fiber.StatusBadRequest,
+			"message": "validation",
+			"record":  errors,
+		})
+	}
+	user := c.Locals("jwt").(*jwt.Token)
+	claims := user.Claims.(jwt.MapClaims)
+	name := claims["name"].(string)
+	temp_decp := helpers.Decryption(name)
+	log.Println("Client TOKEN : ", temp_decp)
+	log.Println("Client BODYPARSE : ", client.Client_hostname)
+
+	var obj entities.Model_movie
+	var arraobj []entities.Model_movie
+	render_page := time.Now()
+	resultredis, flag := helpers.GetRedis(Fieldmoviegenre_home_redis + "_" + strconv.Itoa(client.Movie_page) + "_" + client.Slug)
+	jsonredis := []byte(resultredis)
+	genre_RD, _ := jsonparser.GetString(jsonredis, "genre")
+	message_RD, _ := jsonparser.GetString(jsonredis, "message")
+	perpage_RD, _ := jsonparser.GetInt(jsonredis, "perpage")
+	totalrecord_RD, _ := jsonparser.GetInt(jsonredis, "totalrecord")
+	record_RD, _, _, _ := jsonparser.Get(jsonredis, "record")
+	jsonparser.ArrayEach(record_RD, func(value []byte, dataType jsonparser.ValueType, offset int, err error) {
+		movie_title, _ := jsonparser.GetString(value, "movie_title")
+		movie_thumbnail, _ := jsonparser.GetString(value, "movie_thumbnail")
+		movie_slug, _ := jsonparser.GetString(value, "movie_slug")
+
+		obj.Movie_title = movie_title
+		obj.Movie_thumbnail = movie_thumbnail
+		obj.Movie_slug = movie_slug
+		arraobj = append(arraobj, obj)
+
+	})
+	if !flag {
+		result, err := models.Fetch_movieByGenre(client.Slug, client.Movie_page)
+		if err != nil {
+			c.Status(fiber.StatusBadRequest)
+			return c.JSON(fiber.Map{
+				"status":  fiber.StatusBadRequest,
+				"message": err.Error(),
+				"record":  nil,
+			})
+		}
+		helpers.SetRedis(Fieldmoviegenre_home_redis+"_"+strconv.Itoa(client.Movie_page)+"_"+client.Slug, result, time.Minute*60)
+		fmt.Println("MOVIE-GENRE MYSQL")
+		return c.JSON(result)
+	} else {
+		fmt.Println("MOVIE-GENRE CACHE")
+		return c.JSON(fiber.Map{
+			"status":      fiber.StatusOK,
+			"message":     message_RD,
+			"record":      arraobj,
+			"perpage":     perpage_RD,
+			"totalrecord": totalrecord_RD,
+			"genre":       genre_RD,
 			"time":        time.Since(render_page).String(),
 		})
 	}
