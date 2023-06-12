@@ -81,7 +81,7 @@ func Fetch_movieHome(search, tipe string, page int) (helpers.ResponsePaging, err
 	case "UPDATE":
 		sql_select += "ORDER BY updatedatemovie DESC LIMIT " + strconv.Itoa(perpage)
 	case "RANDOM":
-		sql_select += "ORDER BY random() LIMIT 500 "
+		sql_select += "ORDER BY random() LIMIT 200 "
 	default:
 		sql_select += "ORDER BY random() DESC LIMIT " + strconv.Itoa(perpage)
 	}
@@ -228,10 +228,16 @@ func Fetch_movieDetail(slug string) (helpers.Response, error) {
 		movie_src := _GetVideoSingleRandom(movieid_db)
 
 		//GENRE
+		type s_genre struct {
+			Genre_id int
+		}
+		var objgen s_genre
+		var arrobjgen []s_genre
+		var temp_idgenre = ""
 		var objmoviegenre entities.Model_moviegenre
 		var arraobjmoviegenre []entities.Model_moviegenre
 		sql_selectmoviegenre := `SELECT 
-			B.nmgenre, B.slug  
+			B.idgenre, B.nmgenre, B.slug  
 			FROM ` + config.DB_tbl_trx_moviegenre + ` as A 
 			JOIN ` + config.DB_tbl_mst_movie_genre + ` as B ON B.idgenre = A.idgenre 
 			WHERE A.movieid = $1   
@@ -240,13 +246,26 @@ func Fetch_movieDetail(slug string) (helpers.Response, error) {
 		helpers.ErrorCheck(err)
 		for row_moviegenre.Next() {
 			var (
+				idgenre_db          int
 				nmgenre_db, slug_db string
 			)
-			err := row_moviegenre.Scan(&nmgenre_db, &slug_db)
+			err := row_moviegenre.Scan(&idgenre_db, &nmgenre_db, &slug_db)
 			helpers.ErrorCheck(err)
 			objmoviegenre.Movie_genre = nmgenre_db
 			objmoviegenre.Movie_slug = slug_db
 			arraobjmoviegenre = append(arraobjmoviegenre, objmoviegenre)
+
+			objgen.Genre_id = idgenre_db
+			arrobjgen = append(arrobjgen, objgen)
+		}
+		defer row_moviegenre.Close()
+		fmt.Println(len(arrobjgen))
+		for i := 0; i < len(arrobjgen); i++ {
+			if i == len(arrobjgen)-1 {
+				temp_idgenre += strconv.Itoa(arrobjgen[i].Genre_id)
+			} else {
+				temp_idgenre += strconv.Itoa(arrobjgen[i].Genre_id) + ","
+			}
 		}
 
 		//SOURCE
@@ -272,7 +291,82 @@ func Fetch_movieDetail(slug string) (helpers.Response, error) {
 				objmoviesource.Movie_src = url_db
 				arraobjmoviesource = append(arraobjmoviesource, objmoviesource)
 			}
+			defer row_moviesource.Close()
 		}
+
+		// MOVIE NEW
+		var objmovienew entities.Model_movie
+		var arraobjmovienew []entities.Model_movie
+		sql_movienew := `SELECT 
+				movietitle , COALESCE(posted_id,0) , urlthumbnail, slug 
+				FROM ` + config.DB_tbl_trx_movie + ` 
+				WHERE enabled = 1 
+				ORDER BY createdatemovie DESC LIMIT 20  
+			`
+
+		row_movienew, err_movienew := con.QueryContext(ctx, sql_movienew)
+		helpers.ErrorCheck(err_movienew)
+
+		for row_movienew.Next() {
+			var (
+				posted_id_db                            int
+				movietitle_db, urlthumbnail_db, slug_db string
+			)
+
+			err := row_movienew.Scan(&movietitle_db, &posted_id_db, &urlthumbnail_db, &slug_db)
+			helpers.ErrorCheck(err)
+			path_image := ""
+			if urlthumbnail_db == "" {
+				poster_image, poster_extension := _GetMedia(posted_id_db)
+				path_image = "https://duniafilm.b-cdn.net/uploads/cache/poster_thumb/uploads/" + poster_extension + "/" + poster_image
+			} else {
+				path_image = urlthumbnail_db
+			}
+
+			objmovienew.Movie_title = movietitle_db
+			objmovienew.Movie_thumbnail = path_image
+			objmovienew.Movie_slug = slug_db
+			arraobjmovienew = append(arraobjmovienew, objmovienew)
+		}
+		defer row_movienew.Close()
+
+		// MOVIE GENRE
+		var objlistmoviegenre entities.Model_movie
+		var arraobjlistmoviegenre []entities.Model_movie
+		sql_listmoviegenre := ""
+		sql_listmoviegenre += "SELECT "
+		sql_listmoviegenre += "B.movietitle , COALESCE(B.posted_id,0) , B.urlthumbnail, B.slug "
+		sql_listmoviegenre += "FROM " + config.DB_tbl_trx_moviegenre + " as A "
+		sql_listmoviegenre += "JOIN " + config.DB_tbl_trx_movie + " as B ON A.movieid = B.movieid "
+		sql_listmoviegenre += "WHERE B.enabled = 1 "
+		sql_listmoviegenre += "AND A.idgenre in (" + fmt.Sprint(temp_idgenre) + ") "
+		sql_listmoviegenre += "ORDER BY B.createdatemovie DESC LIMIT 20 "
+		// fmt.Println(sql_listmoviegenre)
+		row_listmoviegenre, err_listmoviegenre := con.QueryContext(ctx, sql_listmoviegenre)
+		helpers.ErrorCheck(err_listmoviegenre)
+
+		for row_listmoviegenre.Next() {
+			var (
+				posted_id_db                            int
+				movietitle_db, urlthumbnail_db, slug_db string
+			)
+
+			err := row_listmoviegenre.Scan(&movietitle_db, &posted_id_db, &urlthumbnail_db, &slug_db)
+			helpers.ErrorCheck(err)
+			path_image := ""
+			if urlthumbnail_db == "" {
+				poster_image, poster_extension := _GetMedia(posted_id_db)
+				path_image = "https://duniafilm.b-cdn.net/uploads/cache/poster_thumb/uploads/" + poster_extension + "/" + poster_image
+			} else {
+				path_image = urlthumbnail_db
+			}
+
+			objlistmoviegenre.Movie_title = movietitle_db
+			objlistmoviegenre.Movie_thumbnail = path_image
+			objlistmoviegenre.Movie_slug = slug_db
+			arraobjlistmoviegenre = append(arraobjlistmoviegenre, objlistmoviegenre)
+		}
+		defer row_listmoviegenre.Close()
 
 		obj.Movie_type = movietype_db
 		obj.Movie_title = movietitle_db
@@ -284,6 +378,8 @@ func Fetch_movieDetail(slug string) (helpers.Response, error) {
 		obj.Movie_slug = slug_db
 		obj.Movie_genre = arraobjmoviegenre
 		obj.Movie_video = arraobjmoviesource
+		obj.Movie_listvideonew = arraobjmovienew
+		obj.Movie_listvideogenre = arraobjlistmoviegenre
 		arraobj = append(arraobj, obj)
 		msg = "Success"
 	}

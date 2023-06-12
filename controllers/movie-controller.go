@@ -342,6 +342,34 @@ func MoviehomeByDetail(c *fiber.Ctx) error {
 			arraobjmoviesource = append(arraobjmoviesource, objmoviesource)
 		})
 
+		var objlistmoviegenre entities.Model_movie
+		var arraobjlistmoviegenre []entities.Model_movie
+		record_listmoviegenre_RD, _, _, _ := jsonparser.Get(value, "movie_listvideogenre")
+		jsonparser.ArrayEach(record_listmoviegenre_RD, func(value []byte, dataType jsonparser.ValueType, offset int, err error) {
+			movie_title, _ := jsonparser.GetString(value, "movie_title")
+			movie_slug, _ := jsonparser.GetString(value, "movie_slug")
+			movie_thumbnail, _ := jsonparser.GetString(value, "movie_thumbnail")
+
+			objlistmoviegenre.Movie_title = movie_title
+			objlistmoviegenre.Movie_slug = movie_slug
+			objlistmoviegenre.Movie_thumbnail = movie_thumbnail
+			arraobjlistmoviegenre = append(arraobjlistmoviegenre, objlistmoviegenre)
+		})
+
+		var objlistmovienew entities.Model_movie
+		var arraobjlistmovienew []entities.Model_movie
+		record_listmovienew_RD, _, _, _ := jsonparser.Get(value, "movie_listvideonew")
+		jsonparser.ArrayEach(record_listmovienew_RD, func(value []byte, dataType jsonparser.ValueType, offset int, err error) {
+			movie_title, _ := jsonparser.GetString(value, "movie_title")
+			movie_slug, _ := jsonparser.GetString(value, "movie_slug")
+			movie_thumbnail, _ := jsonparser.GetString(value, "movie_thumbnail")
+
+			objlistmovienew.Movie_title = movie_title
+			objlistmovienew.Movie_slug = movie_slug
+			objlistmovienew.Movie_thumbnail = movie_thumbnail
+			arraobjlistmovienew = append(arraobjlistmovienew, objlistmovienew)
+		})
+
 		obj.Movie_type = movie_type
 		obj.Movie_title = movie_title
 		obj.Movie_descp = movie_descp
@@ -352,6 +380,8 @@ func MoviehomeByDetail(c *fiber.Ctx) error {
 		obj.Movie_slug = movie_slug
 		obj.Movie_genre = arraobjmoviegenre
 		obj.Movie_video = arraobjmoviesource
+		obj.Movie_listvideogenre = arraobjlistmoviegenre
+		obj.Movie_listvideonew = arraobjlistmovienew
 		arraobj = append(arraobj, obj)
 
 	})

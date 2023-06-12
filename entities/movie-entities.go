@@ -10,16 +10,18 @@ type Model_movie struct {
 	Movie_thumbnail string `json:"movie_thumbnail"`
 }
 type Model_moviedetailwebsite struct {
-	Movie_type  string      `json:"movie_type"`
-	Movie_title string      `json:"movie_title"`
-	Movie_descp string      `json:"movie_descp"`
-	Movie_slug  string      `json:"movie_slug"`
-	Movie_year  int         `json:"movie_year"`
-	Movie_view  int         `json:"movie_view"`
-	Movie_img   string      `json:"movie_img"`
-	Movie_src   string      `json:"movie_src"`
-	Movie_genre interface{} `json:"movie_genre"`
-	Movie_video interface{} `json:"movie_video"`
+	Movie_type           string      `json:"movie_type"`
+	Movie_title          string      `json:"movie_title"`
+	Movie_descp          string      `json:"movie_descp"`
+	Movie_slug           string      `json:"movie_slug"`
+	Movie_year           int         `json:"movie_year"`
+	Movie_view           int         `json:"movie_view"`
+	Movie_img            string      `json:"movie_img"`
+	Movie_src            string      `json:"movie_src"`
+	Movie_genre          interface{} `json:"movie_genre"`
+	Movie_video          interface{} `json:"movie_video"`
+	Movie_listvideogenre interface{} `json:"movie_listvideogenre"`
+	Movie_listvideonew   interface{} `json:"movie_listvideonew"`
 }
 type Model_moviebanner struct {
 	Moviebanner_urlimg         string `json:"moviebanner_urlimg"`
