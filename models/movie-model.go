@@ -301,7 +301,7 @@ func Fetch_movieDetail(slug string) (helpers.Response, error) {
 				movietitle , COALESCE(posted_id,0) , urlthumbnail, slug 
 				FROM ` + config.DB_tbl_trx_movie + ` 
 				WHERE enabled = 1 
-				ORDER BY createdatemovie DESC LIMIT 20  
+				ORDER BY createdatemovie DESC LIMIT 15   
 			`
 
 		row_movienew, err_movienew := con.QueryContext(ctx, sql_movienew)
@@ -335,12 +335,12 @@ func Fetch_movieDetail(slug string) (helpers.Response, error) {
 		var arraobjlistmoviegenre []entities.Model_movie
 		sql_listmoviegenre := ""
 		sql_listmoviegenre += "SELECT "
-		sql_listmoviegenre += "B.movietitle , COALESCE(B.posted_id,0) , B.urlthumbnail, B.slug "
+		sql_listmoviegenre += "distinct on (B.slug) B.slug, B.movietitle , COALESCE(B.posted_id,0) , B.urlthumbnail "
 		sql_listmoviegenre += "FROM " + config.DB_tbl_trx_moviegenre + " as A "
 		sql_listmoviegenre += "JOIN " + config.DB_tbl_trx_movie + " as B ON A.movieid = B.movieid "
 		sql_listmoviegenre += "WHERE B.enabled = 1 "
 		sql_listmoviegenre += "AND A.idgenre in (" + fmt.Sprint(temp_idgenre) + ") "
-		sql_listmoviegenre += "ORDER BY B.createdatemovie DESC LIMIT 20 "
+		sql_listmoviegenre += "LIMIT 15 "
 		// fmt.Println(sql_listmoviegenre)
 		row_listmoviegenre, err_listmoviegenre := con.QueryContext(ctx, sql_listmoviegenre)
 		helpers.ErrorCheck(err_listmoviegenre)
@@ -351,7 +351,7 @@ func Fetch_movieDetail(slug string) (helpers.Response, error) {
 				movietitle_db, urlthumbnail_db, slug_db string
 			)
 
-			err := row_listmoviegenre.Scan(&movietitle_db, &posted_id_db, &urlthumbnail_db, &slug_db)
+			err := row_listmoviegenre.Scan(&slug_db, &movietitle_db, &posted_id_db, &urlthumbnail_db)
 			helpers.ErrorCheck(err)
 			path_image := ""
 			if urlthumbnail_db == "" {
