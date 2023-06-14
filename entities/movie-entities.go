@@ -22,6 +22,7 @@ type Model_moviedetailwebsite struct {
 	Movie_video          interface{} `json:"movie_video"`
 	Movie_listvideogenre interface{} `json:"movie_listvideogenre"`
 	Movie_listvideonew   interface{} `json:"movie_listvideonew"`
+	Movie_listseason     interface{} `json:"movie_listseason"`
 }
 type Model_moviebanner struct {
 	Moviebanner_urlimg         string `json:"moviebanner_urlimg"`
