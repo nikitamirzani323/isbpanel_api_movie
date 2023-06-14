@@ -7,5 +7,5 @@ type Model_banner struct {
 	Banner_device     string `json:"banner_device"`
 }
 type Controller_banner struct {
-	Client_Device string `json:"client_device"`
+	Client_hostname string `json:"client_hostname" validate:"required"`
 }

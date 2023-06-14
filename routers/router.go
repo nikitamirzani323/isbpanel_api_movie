@@ -32,8 +32,8 @@ func Init() *fiber.App {
 		},
 	}))
 	app.Post("/api/init", controllers.CheckLogin)
-	app.Post("/api/banner", controllers.Bannerhome)
 
+	app.Post("/api/banner", middleware.JWTProtected(), controllers.Bannerhome)
 	app.Post("/api/home", middleware.JWTProtected(), controllers.Home)
 	app.Post("/api/genre", middleware.JWTProtected(), controllers.Moviegenre)
 	app.Post("/api/movie", middleware.JWTProtected(), controllers.Moviehome)

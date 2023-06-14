@@ -57,7 +57,7 @@ func Fetch_genre() (helpers.Response, error) {
 
 	return res, nil
 }
-func Fetch_movieHome(search, tipe string, page int) (helpers.ResponsePaging, error) {
+func Fetch_movieHome(search, tipe string, perpage_client, page int) (helpers.ResponsePaging, error) {
 	var obj entities.Model_movie
 	var arraobj []entities.Model_movie
 	var res helpers.ResponsePaging
@@ -66,7 +66,7 @@ func Fetch_movieHome(search, tipe string, page int) (helpers.ResponsePaging, err
 	ctx := context.Background()
 	start := time.Now()
 
-	perpage := 40
+	perpage := perpage_client
 	totalrecord := 200
 	// offset := page
 
@@ -81,7 +81,7 @@ func Fetch_movieHome(search, tipe string, page int) (helpers.ResponsePaging, err
 	case "UPDATE":
 		sql_select += "ORDER BY updatedatemovie DESC LIMIT " + strconv.Itoa(perpage)
 	case "RANDOM":
-		sql_select += "ORDER BY random() LIMIT 200 "
+		sql_select += "ORDER BY random() LIMIT " + strconv.Itoa(perpage)
 	default:
 		sql_select += "ORDER BY random() DESC LIMIT " + strconv.Itoa(perpage)
 	}

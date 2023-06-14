@@ -161,7 +161,7 @@ func Moviehome(c *fiber.Ctx) error {
 
 	})
 	if !flag {
-		result, err := models.Fetch_movieHome(client.Movie_search, client.Movie_tipe, client.Movie_page)
+		result, err := models.Fetch_movieHome(client.Movie_search, client.Movie_tipe, client.Movie_perpage, client.Movie_page)
 		if err != nil {
 			c.Status(fiber.StatusBadRequest)
 			return c.JSON(fiber.Map{

@@ -47,16 +47,16 @@ func Bannerhome(c *fiber.Ctx) error {
 	hostname, _ := jsonparser.GetString(data_origin, "client_hostname")
 	log.Println("Request Body : ", string(data_origin))
 	log.Println("BANNER CLIENT origin : ", hostname)
-	flag_client := _domainsecurity(hostname)
-	log.Println("STATUS DOMAIN : ", flag_client)
-	if !flag_client {
-		c.Status(fiber.StatusBadRequest)
-		return c.JSON(fiber.Map{
-			"status":  fiber.StatusBadRequest,
-			"message": "NOT REGISTER",
-			"record":  nil,
-		})
-	}
+	// flag_client := _domainsecurity(hostname)
+	// log.Println("STATUS DOMAIN : ", flag_client)
+	// if !flag_client {
+	// 	c.Status(fiber.StatusBadRequest)
+	// 	return c.JSON(fiber.Map{
+	// 		"status":  fiber.StatusBadRequest,
+	// 		"message": "NOT REGISTER",
+	// 		"record":  nil,
+	// 	})
+	// }
 
 	var obj entities.Model_banner
 	var arraobj []entities.Model_banner
