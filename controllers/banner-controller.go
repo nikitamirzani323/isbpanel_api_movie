@@ -4,9 +4,9 @@ import (
 	"log"
 	"time"
 
-	"bitbucket.org/isbtotogroup/isbpanel_api_frontend/entities"
-	"bitbucket.org/isbtotogroup/isbpanel_api_frontend/helpers"
-	"bitbucket.org/isbtotogroup/isbpanel_api_frontend/models"
+	"bitbucket.org/isbtotogroup/isbpanel_api_movie/entities"
+	"bitbucket.org/isbtotogroup/isbpanel_api_movie/helpers"
+	"bitbucket.org/isbtotogroup/isbpanel_api_movie/models"
 	"github.com/buger/jsonparser"
 	"github.com/go-playground/validator/v10"
 	"github.com/gofiber/fiber/v2"

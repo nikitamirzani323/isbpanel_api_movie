@@ -1,11 +1,11 @@
 package controllers
 
 import (
-	"log"
+	"fmt"
 	"strconv"
 
-	"bitbucket.org/isbtotogroup/isbpanel_api_frontend/entities"
-	"bitbucket.org/isbtotogroup/isbpanel_api_frontend/helpers"
+	"bitbucket.org/isbtotogroup/isbpanel_api_movie/entities"
+	"bitbucket.org/isbtotogroup/isbpanel_api_movie/helpers"
 	"github.com/go-playground/validator/v10"
 	"github.com/gofiber/fiber/v2"
 	"github.com/golang-jwt/jwt/v4"
@@ -67,8 +67,8 @@ func Home(c *fiber.Ctx) error {
 	claims := user.Claims.(jwt.MapClaims)
 	name := claims["name"].(string)
 	temp_decp := helpers.Decryption(name)
-	log.Println("name", name)
-	log.Println("Decp", temp_decp)
+	fmt.Println("name", name)
+	fmt.Println("Decp", temp_decp)
 
 	c.Status(fiber.StatusOK)
 	return c.JSON(fiber.Map{

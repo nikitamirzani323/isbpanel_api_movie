@@ -4,10 +4,10 @@ import (
 	"context"
 	"time"
 
-	"bitbucket.org/isbtotogroup/isbpanel_api_frontend/config"
-	"bitbucket.org/isbtotogroup/isbpanel_api_frontend/db"
-	"bitbucket.org/isbtotogroup/isbpanel_api_frontend/entities"
-	"bitbucket.org/isbtotogroup/isbpanel_api_frontend/helpers"
+	"bitbucket.org/isbtotogroup/isbpanel_api_movie/config"
+	"bitbucket.org/isbtotogroup/isbpanel_api_movie/db"
+	"bitbucket.org/isbtotogroup/isbpanel_api_movie/entities"
+	"bitbucket.org/isbtotogroup/isbpanel_api_movie/helpers"
 	"github.com/gofiber/fiber/v2"
 )
 

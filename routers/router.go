@@ -3,8 +3,8 @@ package routers
 import (
 	"time"
 
-	"bitbucket.org/isbtotogroup/isbpanel_api_frontend/controllers"
-	"bitbucket.org/isbtotogroup/isbpanel_api_frontend/middleware"
+	"bitbucket.org/isbtotogroup/isbpanel_api_movie/controllers"
+	"bitbucket.org/isbtotogroup/isbpanel_api_movie/middleware"
 	"github.com/gofiber/fiber/v2"
 	"github.com/gofiber/fiber/v2/middleware/compress"
 	"github.com/gofiber/fiber/v2/middleware/limiter"

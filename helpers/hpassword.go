@@ -9,7 +9,7 @@ import (
 	s "strings"
 	"time"
 
-	"bitbucket.org/isbtotogroup/isbpanel_api_frontend/config"
+	"bitbucket.org/isbtotogroup/isbpanel_api_movie/config"
 	"golang.org/x/crypto/bcrypt"
 )
 

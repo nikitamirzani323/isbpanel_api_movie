@@ -6,9 +6,9 @@ import (
 	"log"
 	"strings"
 
-	"bitbucket.org/isbtotogroup/isbpanel_api_frontend/config"
-	"bitbucket.org/isbtotogroup/isbpanel_api_frontend/db"
-	"bitbucket.org/isbtotogroup/isbpanel_api_frontend/helpers"
+	"bitbucket.org/isbtotogroup/isbpanel_api_movie/config"
+	"bitbucket.org/isbtotogroup/isbpanel_api_movie/db"
+	"bitbucket.org/isbtotogroup/isbpanel_api_movie/helpers"
 )
 
 func Get_counter(field_column string) int {
