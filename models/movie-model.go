@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"log"
 	"strconv"
+	"strings"
 	"time"
 
 	"bitbucket.org/isbtotogroup/isbpanel_api_movie/config"
@@ -105,6 +106,82 @@ func Fetch_movieHome(search, tipe string, perpage_client, page int) (helpers.Res
 		}
 
 		// movie_url, _, _ := _GetVideo(movieid_db, "")
+
+		obj.Movie_title = movietitle_db
+		obj.Movie_thumbnail = path_image
+		obj.Movie_slug = slug_db
+		arraobj = append(arraobj, obj)
+		msg = "Success"
+	}
+	defer row.Close()
+
+	res.Status = fiber.StatusOK
+	res.Message = msg
+	res.Record = arraobj
+	res.Totalrecord = totalrecord
+	res.Perpage = perpage
+	res.Time = time.Since(start).String()
+
+	return res, nil
+}
+func Fetch_movieHomeSearch(search string) (helpers.ResponsePaging, error) {
+	var obj entities.Model_movie
+	var arraobj []entities.Model_movie
+	var res helpers.ResponsePaging
+	msg := "Data Not Found"
+	con := db.CreateCon()
+	ctx := context.Background()
+	start := time.Now()
+
+	perpage := 20
+	totalrecord := 0
+
+	sql_selectcount := ""
+	sql_selectcount += ""
+	sql_selectcount += "SELECT "
+	sql_selectcount += "COUNT(movieid) as totalmovie  "
+	sql_selectcount += "FROM " + config.DB_VIEW_MOVIE + "  "
+	sql_selectcount += "WHERE enabled = 1 "
+	if search != "" {
+		sql_selectcount += "AND LOWER(movietitle) LIKE '%" + strings.ToLower(search) + "%' "
+	}
+	row_selectcount := con.QueryRowContext(ctx, sql_selectcount)
+	switch e_selectcount := row_selectcount.Scan(&totalrecord); e_selectcount {
+	case sql.ErrNoRows:
+	case nil:
+	default:
+		helpers.ErrorCheck(e_selectcount)
+	}
+
+	sql_select := ""
+	sql_select += "SELECT "
+	sql_select += "movietitle , COALESCE(posted_id,0) , urlthumbnail, slug "
+	sql_select += "FROM " + config.DB_tbl_trx_movie + " "
+	sql_select += "WHERE enabled = 1 "
+	if search != "" {
+		sql_select += "AND LOWER(movietitle) LIKE '%" + strings.ToLower(search) + "%' "
+	}
+	sql_select += "ORDER BY createdatemovie DESC   LIMIT " + strconv.Itoa(perpage)
+
+	fmt.Println(sql_select)
+	row, err := con.QueryContext(ctx, sql_select)
+	helpers.ErrorCheck(err)
+
+	for row.Next() {
+		var (
+			posted_id_db                            int
+			movietitle_db, urlthumbnail_db, slug_db string
+		)
+
+		err := row.Scan(&movietitle_db, &posted_id_db, &urlthumbnail_db, &slug_db)
+		helpers.ErrorCheck(err)
+		path_image := ""
+		if urlthumbnail_db == "" {
+			poster_image, poster_extension := _GetMedia(posted_id_db)
+			path_image = "https://duniafilm.b-cdn.net/uploads/cache/poster_thumb/uploads/" + poster_extension + "/" + poster_image
+		} else {
+			path_image = urlthumbnail_db
+		}
 
 		obj.Movie_title = movietitle_db
 		obj.Movie_thumbnail = path_image

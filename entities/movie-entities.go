@@ -105,6 +105,10 @@ type Controller_clientmovie struct {
 	Movie_perpage   int    `json:"movie_perpage"`
 	Movie_page      int    `json:"movie_page"`
 }
+type Controller_clientmoviesearch struct {
+	Client_hostname string `json:"client_hostname" validate:"required"`
+	Movie_search    string `json:"movie_search"`
+}
 type Controller_clientmoviegenre struct {
 	Client_hostname string `json:"client_hostname" validate:"required"`
 	Movie_page      int    `json:"movie_page"`
