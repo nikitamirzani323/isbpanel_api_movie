@@ -1,0 +1,16 @@
+apiVersion: v1
+kind: Secret
+metadata:
+  name: stg-db-movie-credentials
+  namespace: movie-isb
+data:
+  jwt-expired: MTQ0MA==
+  jwt-secret: c2VjcmV0bW92aWVrZWx1YXJhbg==
+  pg-dbname: YWRtaW5kYg==
+  pg-schema: ZGJfa2VsdWFyYW5tb3ZpZQ==
+  pg-host: MTI4LjE5OS4xMjQuMTMx
+  pg-password: YXNkMTIzUVdF
+  pg-user: YWRtaW5kYg==
+  redis-host: MTI4LjE5OS4xMjQuMTMx
+  redis-pass: YXNkUVdFMTIzIUAj
+type: Opaque
